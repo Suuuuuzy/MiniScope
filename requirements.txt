@@ -7,7 +7,7 @@ Js2Py==0.74
 loguru==0.6.0
 lxml==4.9.0
 matplotlib==3.7.0
-mitmproxy==9.0.1
+mitmproxy==8.0.0
 networkx==2.8
 nose2==0.13.0
 numpy==1.23.3

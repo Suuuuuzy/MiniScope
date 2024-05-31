@@ -64,12 +64,12 @@ def decompile_wxapkg_with_unveilr(wxapkg, output_path=None):
 WXAPKG_FLAG = 'V1MMWX'
 WXAPKG_FLAG_LEN = len(WXAPKG_FLAG)
 WXAPPUNPACKER_PATH = os.path.dirname(os.path.abspath(__file__)) + '/wxappUnpacker'
-UNPACK_COMMAND = 'node ' + WXAPPUNPACKER_PATH + os.sep + '/wuWxapkg.js {}'
+UNPACK_COMMAND = 'node ' + WXAPPUNPACKER_PATH + os.sep + '/wuWxapkg.js {package_path} -o -output={output_path}'
 
 
-def decompile_wxapkg_with_wxUnpacker(package_path):
+def decompile_wxapkg_with_wxUnpacker(package_path, output_path):
     success_flg = True
-    command = UNPACK_COMMAND.format(package_path)
+    command = UNPACK_COMMAND.format(package_path = package_path, output_path = output_path)
     execute_flg, execute_result = utils.execute_cmd(command)
     # 执行出错，那么检查出错是不是解密造成的，如果是，就再一次解密，然后重新做一次反编译
     if execute_flg is False:
@@ -143,7 +143,7 @@ def decrypt_by_salt_and_iv(wxid, input_file, output_file, salt, iv):
 
 
 if __name__ == '__main__':
-    wxapkg_path = '/root/unveilr/wxapkgs/wx0012c9069fddb0d3-pc.wxapkg'
+    wxapkg_path = '/media/data4/jianjia_data4/miniapp_data/wxapkgs-42w/wx90ea9910e6225016-pc.wxapkg'
     # test unveilr
     # decompile_wxapkg_with_unveilr(wxapkg_path, output_path='/root/minidroid/dataset/WeMint-TP/miniprograms/')
 

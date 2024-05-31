@@ -179,14 +179,26 @@ function packDone(dir, cb, order) {
 }
 
 function doFile(name, cb, order) {
-    for (let ord of order) if (ord.startsWith("s=")) global.subPack = ord.slice(3);
+    var outputDir = "";
+    for (let ord of order) {
+        if (ord.startsWith("s=")) global.subPack = ord.slice(3);
+        if (ord.startsWith("output=")) outputDir = ord.slice(7);
+    }
     console.log("Unpack file " + name + "...");
+    console.log(order);
     let dir = path.resolve(name, "..", path.basename(name, ".wxapkg"));
     wu.get(name, buf => {
         let [infoListLength, dataLength] = header(buf.slice(0, 14));
         if (order.includes("o")) wu.addIO(console.log.bind(console), "Unpack done.");
         else wu.addIO(packDone, dir, cb, order);
-        saveFile(dir, buf, genList(buf.slice(14, infoListLength + 14)));
+        if (outputDir!="") {
+            console.log("Output file " + outputDir);
+            saveFile(outputDir, buf, genList(buf.slice(14, infoListLength + 14)));
+        }
+        else{
+            console.log("Output file " + dir);
+            saveFile(dir, buf, genList(buf.slice(14, infoListLength + 14)));
+        }
     }, {});
 }
 
