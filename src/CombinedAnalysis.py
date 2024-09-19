@@ -13,20 +13,14 @@ from dynamic.pgc import CrawlWXMicroWebView
 from dynamic.pgc.builtins.elems import renter
 from dynamic.pgc.builtins.hooker import FridaHooker
 from dynamic.pgc.builtins.context import get_config
-from dynamic.pgc.builtins.context.actions import quito_mainpage
 from dynamic.pgc.utils.confman import ConfMan
 from dynamic.pgc.models.page.xwebpage import MiniappXwebPage
-from models.monitor import run_mitm_objection
+from monitor import run_mitm_objection
 
-from dynamic.pgc.utils.confman import ConfMan
-from dynamic.pgc import CrawlWXMicroWebView
-from dynamic.pgc.builtins.elems import renter
 from dynamic.pgc.builtins.context.actions import quito_mainpage
-from dynamic.pgc.builtins.context import get_config
-from dynamic.pgc.models.page.xwebpage import MiniappXwebPage
 
-from static.src.miniapp import MiniApp
-from static.src.utils.wxapkg_decoder import decompile_wxapkg_with_unveilr
+from static.miniapp import MiniApp
+from static.utils.wxapkg_decoder import decompile_wxapkg_with_unveilr
 
 
 class CombinedAnalyzer:
@@ -55,7 +49,7 @@ class CombinedAnalyzer:
         self.log_path = self.lib_path / 'log' / f'{time.strftime("%Y-%m-%d", self.startTime)}.log'
         logger.add(str(self.log_path), colorize=True, format="<green>{time}</green> <level>{message}</level>")
 
-        FridaHooker('script.js').hook('network')
+        # FridaHooker('script.js').hook('network')
 
         self.dynamicAnalyzer = CrawlWXMicroWebView.from_config_file(self.config_path)
         logger.info('PoliGuard Crawler Object Init Done')

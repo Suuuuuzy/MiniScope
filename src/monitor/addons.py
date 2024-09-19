@@ -1,5 +1,5 @@
 import os.path
-from loguru import logger
+# from loguru import logger
 from mitmproxy import ctx, http
 from pathlib import Path
 import pickle
@@ -126,6 +126,8 @@ class HijackWxapkg:
     def response(self, flow: http.HTTPFlow):
         req = flow.request
         rep = flow.response
+        # logger.info("mitm: get req {}".format(f"{str(req)}"))
+        ctx.log.info("mitm: get req {}".format(f"{str(req.url)}"))
         if 'servicewechat.com/weapp/release_encrypt' not in req.url \
                 or rep.status_code != 200:
             return
@@ -137,7 +139,8 @@ class HijackWxapkg:
         elif "wxapkg" in req.url:
             file_content = file_content
 
-        logger.info("mitm: get package {}".format(f"{str(req.timestamp_start)}.wxapkg"))
+        # logger.info("mitm: get package {}".format(f"{str(req.timestamp_start)}.wxapkg"))
+        ctx.log.info("mitm: get package {}".format(f"{str(req.timestamp_start)}.wxapkg"))
         with open(SAVE_DIRECTORY / f"{str(req.timestamp_start)}.wxapkg", 'wb') as f:
             f.write(file_content)
 
