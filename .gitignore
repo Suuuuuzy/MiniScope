@@ -1,4 +1,5 @@
 **/node_modules
+src/utils/wxapp_about/
 # node_modules/
 src/static/utils/wxappUnpacker/node_modules/
 # Byte-compiled / optimized / DLL files
