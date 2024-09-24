@@ -1,7 +1,10 @@
+data/flow/
+myenv/
 **/node_modules
 src/utils/wxapp_about/
 # node_modules/
 src/static/utils/wxappUnpacker/node_modules/
+src/static/pdg_js/node_modules/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

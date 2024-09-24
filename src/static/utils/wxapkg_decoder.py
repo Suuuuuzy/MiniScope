@@ -2,7 +2,7 @@ import re
 import os
 import subprocess
 import platform
-import utils.utils as utils
+import static.utils.utils as utils
 from Crypto.Protocol.KDF import PBKDF2
 from Crypto.Hash import SHA1
 from Crypto.Cipher import AES
@@ -46,9 +46,9 @@ def decompile_wxapkg_with_unveilr(wxapkg, output_path=None):
         raise UnsupportedOSException("Unsupported OS: {} {}".format(system, machine))
     
     if output_path is not None:
-        cmdline = [decompiler_tool, wxapkg, '-o', output_path, '-f']
+        cmdline = [decompiler_tool, wxapkg, '-o', output_path, '-f', '--clear-output']
     else:
-        cmdline = [decompiler_tool, wxapkg, '-f']
+        cmdline = [decompiler_tool, wxapkg, '-f', '--clear-output']
 
     try:
         subprocess.check_output(cmdline)
@@ -67,9 +67,11 @@ WXAPPUNPACKER_PATH = os.path.dirname(os.path.abspath(__file__)) + '/wxappUnpacke
 UNPACK_COMMAND = 'node ' + WXAPPUNPACKER_PATH + os.sep + '/wuWxapkg.js {package_path} -o -output={output_path}'
 
 
-def decompile_wxapkg_with_wxUnpacker(package_path, output_path):
+def decompile_wxapkg_with_wxUnpacker(package_path, output_path, mainpkg):
     success_flg = True
     command = UNPACK_COMMAND.format(package_path = package_path, output_path = output_path)
+    if mainpkg:
+        command += f"-s={mainpkg}"
     execute_flg, execute_result = utils.execute_cmd(command)
     # 执行出错，那么检查出错是不是解密造成的，如果是，就再一次解密，然后重新做一次反编译
     if execute_flg is False:
@@ -143,7 +145,7 @@ def decrypt_by_salt_and_iv(wxid, input_file, output_file, salt, iv):
 
 
 if __name__ == '__main__':
-    wxapkg_path = '/media/data4/jianjia_data4/miniapp_data/wxapkgs-42w/wx90ea9910e6225016-pc.wxapkg'
+    wxapkg_path = '/Users/jianjia/Library/Containers/com.tencent.xinWeChat/Data/.wxapplet/packages/wx43aab19a93a3a6f2/448/__APP__.wxapkg'
     # test unveilr
     # decompile_wxapkg_with_unveilr(wxapkg_path, output_path='/root/minidroid/dataset/WeMint-TP/miniprograms/')
 

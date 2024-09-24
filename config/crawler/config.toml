@@ -1,9 +1,9 @@
-localChrome = "/home/ciscn/Ciscn/PoliGuard/src/dynamic/drivers/111"
-appName = "小龙象"
-appID = "wx7e3c3f665cd8e4e6"
+localChrome = "/Users/jianjia/Documents/projects/mini-app/MiniScope/drivers/116"
+appName = "遂川旅游景点"
+appID = "wx4938079035028687"
 
 [capabilities]
-deviceName = "192.168.137.152:5555"
+deviceName = "Pixel_6a"
 platformName = "Android"
 appPackage = "com.tencent.mm"
 appActivity = "com.tencent.mm.ui.LauncherUI"
@@ -11,4 +11,4 @@ automationName = "uiautomator2"
 noReset = true
 unicodeKeyboard = true
 resetKeyboard = true
-chromedriverExecutable = "/home/ciscn/Ciscn/PoliGuard/src/dynamic/drivers/107"
+chromedriverExecutable = "/Users/jianjia/Documents/projects/mini-app/MiniScope/drivers/116"

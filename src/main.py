@@ -68,8 +68,6 @@ def params():
     parser.add_argument("-sa", "--staticAnalyzed", default=None, type=str, help="Static analyzed file path")
     parser.add_argument("-da", "--dynamicAnalyzed", default=None, type=str, help="Dynamic analyzed file path")
     parser.add_argument("-ca", "--combinedAnalyzed", default=None, type=str, help="Combined analyzed file path")
-    parser.add_argument("-da", "--dynamicAnalyzed", default=None, type=str, help="Dynamic analyzed file path")
-    parser.add_argument("-ca", "--combinedAnalyzed", default=None, type=str, help="Combined analyzed file path")
     args = parser.parse_args()
     if args.config is not None:
         if os.path.isfile(args.config):

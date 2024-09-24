@@ -15,21 +15,11 @@ import re
 import pprint
 from pathlib import Path
 from loguru import logger
-import config as config
+from . import config as config
 from bs4 import BeautifulSoup, Tag
-from pdg_js.build_pdg import get_data_flow
-from utils.utils import get_page_expr_node, get_page_method_nodes
-from pdg_js.js_operators import get_node_computed_value
-# import logging
-# logger = logging.getLogger(__name__)
-# logging.basicConfig(
-#     filename='miniscope.log',
-#     level=logging.DEBUG,
-#     format='%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s',
-#     datefmt='%Y-%m-%d %H:%M:%S',
-#     force=True
-# )
-import time, datetime
+from static.pdg_js.build_pdg import get_data_flow # static.pdg_js.build_pdg is because we are calling main from src/
+from static.utils.utils import get_page_expr_node, get_page_method_nodes
+from static.pdg_js.js_operators import get_node_computed_value
 
 class UIElement:
     """

@@ -11,6 +11,8 @@ import networkx as nx
 from appium.webdriver import Remote
 from appium.webdriver.common.appiumby import AppiumBy
 from selenium.common import ElementNotInteractableException, ElementClickInterceptedException
+# Import Appium UiAutomator2 driver for Android platforms (AppiumOptions)
+from appium.options.android import UiAutomator2Options
 
 from .builtins.context import get_config, set_config, set_crawler
 from .builtins.context.manager import DriverContextManager
@@ -107,8 +109,12 @@ class CrawlWXMicroWebView:
         from selenium.common.exceptions import NoSuchElementException
         config_dict = get_config()
         caps = config_dict['capabilities']
+        # Converts capabilities to AppiumOptions instance
+        capabilities_options = UiAutomator2Options().load_capabilities(caps)
 
-        self.driver = Remote('http://127.0.0.1:4723', caps)
+        appium_server_url = 'http://127.0.0.1:4723'
+        print("capabilities_options >>>", capabilities_options)
+        self.driver = Remote(command_executor=appium_server_url,options=capabilities_options)
         self.driver.implicitly_wait(10)
         app_name = config_dict['appName']
         wind_size = self.driver.get_window_size()
@@ -155,6 +161,113 @@ class CrawlWXMicroWebView:
 
         search_results = self.driver.find_elements(AppiumBy.XPATH, '//android.widget.Button')
         search_results[0].click()
+    
+    def swipe_up_comment_page(self):
+        # swipe up at the search page of miniapp
+        wind_size = self.driver.get_window_size()
+        x = wind_size['width'] * 0.5
+        y0 = wind_size['height'] * 0.4
+        y1 = wind_size['height'] * 0.9
+        cnt = 10
+        while(cnt>0):
+            self.driver.swipe(x, y1, x, y0)
+            cnt -= 1
+            sleep(1)
+            
+    def sendkey_and_click_in_out_app(self, app_name):
+        self.reconnect_driver()
+        # sendkey and click in and out on the comment page
+        search_box = self.driver.find_element(AppiumBy.XPATH, '//*[@text="搜索小程序"]')
+        sleep(3)
+        search_box.send_keys(app_name)
+        self.driver.find_element(AppiumBy.XPATH, '//*[@text="搜索"]').click()
+        self.reconnect_driver()
+        search_results = self.driver.find_elements(AppiumBy.XPATH, '//android.widget.Button')
+        print(f'>>>len of miniapp: {app_name} >> search_results: {len(search_results)}')
+        if len(search_results)>0:
+            print(search_results[0].text)
+        # if app_name in search_results[0].text:
+        #     print(">>>hit the miniapp!")
+        #     # click on the first miniapp we found
+        #     search_results[0].click()
+        #     self.reconnect_driver()
+        #     # close the miniapp after 3 secods
+        #     sleep(3)
+        #     close_btn = self.driver.find_element(AppiumBy.XPATH, '(//android.widget.ImageButton[@content-desc="Close"])[2]')
+        #     close_btn.click()
+        self.swipe_up_comment_page()
+        # //android.widget.ImageButton[@content-desc="清除搜索词"]
+        clear_btn = self.driver.find_element(AppiumBy.XPATH, '//android.widget.ImageButton[@content-desc="清除搜索词"]')
+        clear_btn.click()
+
+
+    def search_into_with_app_name(self, app_name_list):
+        """搜索方式进入小程序
+
+        Hint: 使用该种方法会丢失之前退出时的上下文
+        """
+        config_dict = get_config()
+        caps = config_dict['capabilities']
+        self.driver = Remote('http://127.0.0.1:4723', caps)
+        self.driver.implicitly_wait(10)
+
+        # self.driver.update_settings({'enforceXPath1': True})
+
+        self.driver.find_element(AppiumBy.XPATH, '//*[@content-desc="搜索"]').click()
+        search_box = self.driver.find_element(AppiumBy.XPATH, '//*[@text="搜索"]')
+        sleep(3)
+
+        # the fisrt time into the comment page
+        if len(app_name_list)>0:
+            app_name = app_name_list.pop()
+            search_box.send_keys(app_name)
+            sleep(3)
+            
+            eles = self.driver.find_elements(AppiumBy.XPATH, f'//*[@text="{app_name}"]')
+            if len(eles)>0:
+                eles[-1].click()            
+            
+            sleep(3)        
+            self.reconnect_driver()
+            
+            # switch to the comment page of miniapp
+            self.driver.find_element(AppiumBy.XPATH, '//android.view.View[@text="小程序,按钮,14之5"]').click()
+            sleep(3)            
+            
+            self.reconnect_driver()
+            search_results = self.driver.find_elements(AppiumBy.XPATH, '//android.widget.Button')
+            print(f'>>>len of miniapp: {app_name} >> search_results: {len(search_results)}')
+            if len(search_results)>0:
+                print(search_results[0].text)
+            # if app_name in search_results[0].text:
+            #     print(">>>hit the miniapp!")
+            #     # click on the first miniapp we found
+            #     search_results[0].click()
+            
+            #     self.reconnect_driver()
+            #     # close the miniapp after 3 secods
+            #     sleep(3)
+            #     close_btn = self.driver.find_element(AppiumBy.XPATH, '(//android.widget.ImageButton[@content-desc="Close"])[2]')
+            #     close_btn.click()
+                    
+            self.swipe_up_comment_page()
+            # //android.widget.ImageButton[@content-desc="清除搜索词"]
+            clear_btn = self.driver.find_element(AppiumBy.XPATH, '//android.widget.ImageButton[@content-desc="清除搜索词"]')
+            clear_btn.click()
+            while len(app_name_list) > 0:
+                app_name = app_name_list.pop()
+                self.sendkey_and_click_in_out_app(app_name)
+            
+
+        # click on 取消
+            try:
+                cancel_btn = self.driver.find_element(AppiumBy.XPATH, '//*[@text="取消"]')
+                cancel_btn.click()
+                cnt -= 1
+                sleep(3)
+            except:
+                pass
+            
 
     def explore_pp(self) -> str:
         if goto_ppage() is not None:
