@@ -9,7 +9,7 @@
     - MiniApp(miniapp_path)
 """
 
-import os
+import os, sys
 import json
 import re
 import pprint
@@ -20,7 +20,16 @@ from bs4 import BeautifulSoup, Tag
 from pdg_js.build_pdg import get_data_flow
 from utils.utils import get_page_expr_node, get_page_method_nodes
 from pdg_js.js_operators import get_node_computed_value
-
+# import logging
+# logger = logging.getLogger(__name__)
+# logging.basicConfig(
+#     filename='miniscope.log',
+#     level=logging.DEBUG,
+#     format='%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s',
+#     datefmt='%Y-%m-%d %H:%M:%S',
+#     force=True
+# )
+import time, datetime
 
 class UIElement:
     """
@@ -40,6 +49,9 @@ class UIElement:
         self.name = name  # UIElement type name, such as button
         self.contents = contents  # Element contents
         self.tag = tag  # The UI element itself (Class Tag in BeautifulSoup)
+    
+    def to_dict(self):
+        return {"name":self.name, "contents":self.contents}
 
 
 class Event(UIElement):
@@ -64,6 +76,30 @@ class Event(UIElement):
         super().__init__(name, contents, tag)
         self.trigger = trigger  # Event trigger action, such as bindtap
         self.handler = handler  # Event handler function
+    
+    def to_dict(self):
+        form_dic = {}
+        if self.trigger in ["bindsubmit", "catchsubmit"]:
+            # print(self.tag)
+            for ele in self.tag:
+                if ele.name in ["input", "textarea"]:
+                    # print(ele.name)
+                    # print(self.contents)
+                    if 'name' in ele:
+                        form_dic[ele['name']] = ""
+            # print(form_dic)
+        target = {"id": "", "dataset":{}}
+        if self.trigger in ["bindtap"]:
+            # print("see bindtap")
+            # print(self.tag)
+            for attr in self.tag.attrs:
+                # print("see attr=====")
+                # print(attr)
+                # print(self.tag[attr])
+                if attr.startswith("data-"):
+                    data_name = attr.replace("data-", "")
+                    target["dataset"][data_name] = self.tag[attr]
+        return {"name":self.name, "trigger":self.trigger, "handler":self.handler, "form_dic":form_dic, "target":target}
 
 
 class Navigator(UIElement):
@@ -93,7 +129,7 @@ class Navigator(UIElement):
     def __init__(self, name, contents, tag, navigate_type='', target='', url='',
                  extra_data='', bindsuccess='', bindfail='', bindcomplete=''):
         super().__init__(name, contents, tag)
-        self.type = navigate_type  # navigate/redirect/switchTab/reLaunch/navigateBack
+        self.type = navigate_type  # navigate/redirect/switchTab/reLaunch/navigateBack/exit
         self.target = target  # target miniprogram(self/miniprogram appid)
         self.url = url  # target page url
         self.extra_data = extra_data  # extradata when navigateToMiniprogram
@@ -102,6 +138,16 @@ class Navigator(UIElement):
             'fail': bindfail,
             'complete': bindcomplete
         }
+    
+    def to_dict(self):
+        # bindings = {'success': self.bindings['success'].to_dict() if self.bindings['success'] else None,
+        #     'fail': self.bindings['fail'].to_dict() if self.bindings['fail'] else None,
+        #     'complete': self.bindings['complete'].to_dict() if self.bindings['complete'] else None
+        #     }
+        return {"type":self.type, "target":self.target,
+                "url":self.url, "extra_data":self.extra_data,
+                "bindings":self.bindings
+                }
 
 
 class NavigateAPI:
@@ -137,6 +183,14 @@ class NavigateAPI:
             'fail': bindfail,
             'complete': bindcomplete
         }
+    
+    def to_dict(self):
+        # bindings = {'success': self.bindings['success'].to_dict(),
+        #     'fail': self.bindings['fail'].to_dict(),
+        #     'complete': self.bindings['complete'].to_dict()
+        #     }
+        return {"name":self.name, "target":self.target
+                }
 
 
 class Page:
@@ -168,25 +222,27 @@ class Page:
     """
 
     def __init__(self, page_path, miniapp):
+        global ENABLE_DOUBLEX
         self.page_path = page_path
         self.abs_page_path = os.path.join(miniapp.miniapp_path, page_path)
         self.miniapp = miniapp
-        # Get pdg node
-        if os.path.exists(self.abs_page_path + '.js'):
-            self.pdg_node = get_data_flow(input_file=self.abs_page_path + '.js', benchmarks={})
-        elif os.path.exists(self.abs_page_path + '.ts'):
-            self.pdg_node = get_data_flow(input_file=self.abs_page_path + '.ts', benchmarks={})
-        else:
-            self.pdg_node = None
-        # Get page expression node
-        if self.pdg_node is not None:
-            self.page_expr_node = get_page_expr_node(self.pdg_node)
-        else: self.page_expr_node = None
-        # Get page method nodes
-        if self.page_expr_node is not None:
-            self.page_method_nodes = get_page_method_nodes(self.page_expr_node)
-        else:
-            self.page_method_nodes = {}
+        if ENABLE_DOUBLEX:
+            # Get pdg node
+            if os.path.exists(self.abs_page_path + '.js'):
+                self.pdg_node = get_data_flow(input_file=self.abs_page_path + '.js', benchmarks={})
+            elif os.path.exists(self.abs_page_path + '.ts'):
+                self.pdg_node = get_data_flow(input_file=self.abs_page_path + '.ts', benchmarks={})
+            else:
+                self.pdg_node = None
+            # Get page expression node
+            if self.pdg_node is not None:
+                self.page_expr_node = get_page_expr_node(self.pdg_node)
+            else: self.page_expr_node = None
+            # Get page method nodes
+            if self.page_expr_node is not None:
+                self.page_method_nodes = get_page_method_nodes(self.page_expr_node)
+            else:
+                self.page_method_nodes = {}
 
         self.wxml_soup = None
         self.binding_event = {}
@@ -195,7 +251,8 @@ class Page:
             'NavigateAPI': []  # API Trigger, such as wx.navigateTo()
         }
         self.sensi_apis = {}
-        self.set_page_sensi_apis()
+        if ENABLE_DOUBLEX:
+            self.set_page_sensi_apis()
         if os.path.exists(self.abs_page_path + '.wxml'):
             self.set_wxml_soup(self.abs_page_path)
             if self.wxml_soup is not None:
@@ -210,11 +267,19 @@ class Page:
             logger.error('WxmlNotFoundError: {}'.format(e))
 
     def set_binding_event(self):
+        global ENABLE_DOUBLEX
         for binding in config.BINDING_EVENTS:
             for tag in self.wxml_soup.find_all(attrs={binding: True}):
                 if len(re.findall(r"\{\{(.+?)\}\}", tag.attrs[binding])):
-                    pattern = re.compile(r'\b(' + '|'.join(self.page_method_nodes.keys()) + r')\b')
-                    handler = pattern.findall(tag.attrs[binding])
+                    # print(self.page_path)
+                    # print(tag)
+                    # print(tag.attrs[binding])
+                    if ENABLE_DOUBLEX:
+                        pattern = re.compile(r'\b(' + '|'.join(self.page_method_nodes.keys()) + r')\b')
+                        handler = pattern.findall(tag.attrs[binding])
+                    else:
+                        logger.info(f"A binding event is not solved in: {self.abs_page_path} \nwith tag:\n{tag} \nand attribute: {tag.attrs[binding]}")
+                        handler = "Not solved"
                 else:
                     handler = tag.attrs[binding]
                 event = Event(name=tag.name, trigger=binding,
@@ -224,27 +289,35 @@ class Page:
                 self.binding_event[binding].append(event)
 
     def set_navigator(self):
+        global ENABLE_DOUBLEX
         self.set_navigator_ui()
-        if self.pdg_node is not None:
-            self.set_navigator_api(self.pdg_node)
+        if ENABLE_DOUBLEX:
+            if self.pdg_node is not None:
+                self.set_navigator_api(self.pdg_node)
+        # else:
+        #     self.find_navi_api_by_reg_directly()
 
     def set_navigator_ui(self):
         tags = self.wxml_soup.find_all('navigator')
         for tag in tags:
             target = tag['target'] if 'target' in tag.attrs.keys() else 'self'
-            navigate_type = tag['open-type'] if 'open-type' in tag.attrs.keys() else 'navigate'
+            if 'open-type' in tag.attrs.keys():
+                navigate_type = tag['open-type']
+            elif 'opentype' in tag.attrs.keys():
+                navigate_type = tag['opentype']
+            else:
+                navigate_type = 'navigate'
             bindsuccess = tag['bindsuccess'] if 'bindsuccess' in tag.attrs.keys() else None
             bindfail = tag['bindfail'] if 'bindfail' in tag.attrs.keys() else None
             bindcomplete = tag['bindcomplete'] if 'bindcomplete' in tag.attrs.keys() else None
-
             if target.lower() == 'miniprogram' and navigate_type.lower() in ('navigate', 'navigateBack'):
                 extradata = tag['extra-data'] if 'extra-data' in tag.attrs.keys() else None
                 if navigate_type.lower() == 'navigate':
-                    # <navigator open-type=navigateBack>
+                    # <navigator open-type=navigate>
                     target = tag['app-id'] if 'app-id' in tag.attrs.keys() else 'miniprogram'
-                    url = tag['path'] if 'path' in tag.attrs.keys() else 'index'
-                    if isinstance(url, str):
-                        url = os.path.normpath(os.path.join(self.page_path, url))
+                    url = tag['path'] if 'path' in tag.attrs.keys() else self.page_path
+                    # if isinstance(url, str):
+                    #     url = os.path.normpath(os.path.join(self.page_path, url))
 
                     self.navigator['UIElement'].append(
                         Navigator(
@@ -358,7 +431,7 @@ class Page:
             if props['url']:
                 self.navigator['NavigateAPI'].append(
                     NavigateAPI(
-                        navigate_type='route', name=call_expr_value, target=props['url'].split('?')[0],
+                        navigate_type='route', name=call_expr_value, target=props['url'],
                         bindsuccess=props['success'], bindfail=props['fail'],
                         bindcomplete=props['complete']
                     )
@@ -377,7 +450,7 @@ class Page:
             if props['url']:
                 self.navigator['NavigateAPI'].append(
                     NavigateAPI(
-                        navigate_type='route', name=call_expr_value, target=props['url'].split('?')[0],
+                        navigate_type='route', name=call_expr_value, target=props['url'],
                         bindsuccess=props['success'], bindfail=props['fail'],
                         bindcomplete=props['complete']
                     )
@@ -467,14 +540,16 @@ class MiniApp:
     """
 
     def __init__(self, miniapp_path):
+        global ENABLE_DOUBLEX
         self.miniapp_path = miniapp_path
         self.name = miniapp_path.split('/')[-1]
-        self.pdg_node = get_data_flow(input_file=os.path.join(miniapp_path, 'app.js'), benchmarks={})
-        self.app_expr_node = get_page_expr_node(self.pdg_node)  # App() node
-        if self.app_expr_node is not None:
-            self.app_method_nodes = get_page_method_nodes(self.app_expr_node)
-        else:
-            self.app_method_nodes = None
+        if ENABLE_DOUBLEX:
+            self.pdg_node = get_data_flow(input_file=os.path.join(miniapp_path, 'app.js'), benchmarks={})
+            self.app_expr_node = get_page_expr_node(self.pdg_node)  # App() node
+            if self.app_expr_node is not None:
+                self.app_method_nodes = get_page_method_nodes(self.app_expr_node)
+            else:
+                self.app_method_nodes = None
 
         self.pages = {}
         self.index_page = None
@@ -495,9 +570,12 @@ class MiniApp:
                 # Set pages
                 if 'pages' in app_config_keys.keys():
                     pages = app_config[app_config_keys['pages']]
-                    self.index_page = pages[0]
-                    for page in pages:
-                        self.pages[page] = Page(page, self)
+                    if len(pages)==0:
+                        logger.error(f'{self.miniapp_path} has no page')
+                    else:
+                        self.index_page = pages[0]
+                        for page in pages:
+                            self.pages[page] = Page(page, self)
                 self.pages['app'] = Page('app', self)
                 # Set subpackages
                 if "subpackages" in app_config_keys.keys():
@@ -514,7 +592,10 @@ class MiniApp:
                 if app_config.get('tabBar', False):
                     tab_bar_list = app_config['tabBar']['list']
                     for tab_bar in tab_bar_list:
-                        self.tabBars[tab_bar['pagePath']] = tab_bar['text']
+                        if 'text' in tab_bar:
+                            self.tabBars[tab_bar['pagePath']] = tab_bar['text']
+                        else:
+                            self.tabBars[tab_bar['pagePath']] = ""
                 else:
                     self.tabBars[self.index_page] = '首页'
 
@@ -537,12 +618,94 @@ class MiniApp:
             if len(sensi_api_matched):
                 self.sensi_apis[page.page_path] = sensi_api_matched
     
+    def get_cmrf_pattern():
+        combined_list = config.ROUTE_API + config.NAVIGATE_API
+        combined_list = [i.replace("wx.", "") for i in combined_list]
+        # Join the list elements into a single string separated by the '|' operator
+        pattern_string = '|'.join(combined_list)
+        pattern = rf'({pattern_string})'    
+        return pattern
+    
+    def find_navi_api_by_reg_directly(self, miniapp_path):
+        for page in self.pages.values():
+            try:
+                with open(os.path.join(miniapp_path, page.page_path + '.js'), 'r', encoding='utf-8') as fp:
+                    data = fp.read()
+            except FileNotFoundError:
+                try:
+                    with open(os.path.join(miniapp_path, page.page_path + '.ts'), 'r', encoding='utf-8') as fp:
+                        data = fp.read()
+                except FileNotFoundError:
+                    logger.error('PageNotFoundError: {}'.format(os.path.join(miniapp_path, page.page_path)))
+            # navi_api_matched = set()
+            pattern = get_cmrf_pattern()
+            matches = re.findall(pattern, content)
+            if len(matches)>0:
+                # navi_api_matched.add(pkg)
+                self.navigator['NavigateAPI'].append(
+                    NavigateAPI(
+                        navigate_type='jump', name='wx.navigateToMiniProgram', target={props['appId']: props['path']},
+                        extra_data=props['extraData'], bindsuccess=props['success'], bindfail=props['fail'],
+                        bindcomplete=props['complete']
+                    )
+                )
+            # if len(sensi_api_matched):
+            #     self.sensi_apis[page.page_path] = sensi_api_matched
+    
     def set_miniapp_sensi_apis(self):
         for page in self.pages.values():
             if len(page.sensi_apis.keys()):
                 self.sensi_apis[page.page_path] = page.sensi_apis
 
+def output_json(unpacked_wxapkg, output_prefix, navi_check = False):
+    global ENABLE_DOUBLEX
+    if navi_check:
+        ENABLE_DOUBLEX = True
+    app = MiniApp(unpacked_wxapkg)
+    output_json = {}
+    for key in app.pages:
+        page = app.pages[key]
+        
+        binding_event_output = {}
+        for bind in page.binding_event:
+            binding_event_output[bind] = []
+            for evt in page.binding_event[bind]:
+                binding_event_output[bind].append(evt.to_dict())
+        
+        navigator_output = {"NavigateAPI":[],"UIElement":[]}
+        for i in page.navigator["NavigateAPI"]:
+            navigator_output["NavigateAPI"].append(i.to_dict())
+        for i in page.navigator["UIElement"]:
+            navigator_output["UIElement"].append(i.to_dict())
+        
+        sensi_apis_output = {}
+        for api in page.sensi_apis:
+            sensi_apis_output[api] = list(page.sensi_apis[api])
+        
+        output_json[key] = {"binding_event":binding_event_output, 
+                            "navigator":navigator_output, 
+                            "sensi_apis":sensi_apis_output
+                            }
+    
+    outputName = "bind_methods.json"
+    if ENABLE_DOUBLEX:
+        outputName = "bind_methods_navi.json"
+    with open(os.path.join(output_prefix, outputName), "w") as f:
+        json.dump(output_json, f, indent = 2)
+
+def weapp_test():
+    unpacked_wxapkg = "/media/dataj/wechat-devtools-linux/miniprogram-demo/weapp-qrcode"
+    output_prefix = "/media/dataj/wechat-devtools-linux/miniprogram-demo/weapp-qrcode"
+    output_json(unpacked_wxapkg, output_prefix)
+
+ENABLE_DOUBLEX = False
 
 if __name__ == "__main__":
-    app = MiniApp('/root/minidroid/dataset/miniprograms/wxa79672adcfb8788e')
-    pprint.pprint(app.sensi_apis)
+    # jianjia: we use this to output bind_methods.json
+    
+    unpacked_wxapkg = sys.argv[1]
+    navi_check = False
+    if len(sys.argv)>2:
+        navi_check = True
+    output_prefix = unpacked_wxapkg
+    output_json(unpacked_wxapkg, output_prefix, navi_check)
