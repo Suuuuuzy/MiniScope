@@ -221,9 +221,12 @@ class CrawlWXMicroWebView:
         if len(app_name_list)>0:
             app_name = app_name_list.pop()
             search_box.send_keys(app_name)
-            sleep(3)
+            with open("src/batchSearchedWords.txt", "a") as f:
+                f.write(app_name + '\n')
+            sleep(10)
             
             eles = self.driver.find_elements(AppiumBy.XPATH, f'//*[@text="{app_name}"]')
+            print(f'>>>> There are {len(eles)} elements with the keyword in the current page')
             if len(eles)>0:
                 eles[-1].click()            
             
@@ -232,7 +235,7 @@ class CrawlWXMicroWebView:
             
             # switch to the comment page of miniapp
             self.driver.find_element(AppiumBy.XPATH, '//android.view.View[@text="小程序,按钮,14之5"]').click()
-            sleep(3)            
+            sleep(5)            
             
             self.reconnect_driver()
             search_results = self.driver.find_elements(AppiumBy.XPATH, '//android.widget.Button')
@@ -256,6 +259,8 @@ class CrawlWXMicroWebView:
             clear_btn.click()
             while len(app_name_list) > 0:
                 app_name = app_name_list.pop()
+                with open("src/batchSearchedWords.txt", "a") as f:
+                    f.write(app_name + '\n')
                 self.sendkey_and_click_in_out_app(app_name)
             
 
