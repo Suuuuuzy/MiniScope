@@ -24,9 +24,11 @@ EVENT_HANDLER_CALLBACKS = [
     'onThemeChange',
     'onPullDownRefresh',
     'onReachBottom',
+    # yjj: we want to take a look at these three
     'onShareAppMessage',
     'onShareTimeline',
     'onAddToFavorites',
+    # yjj end
     'onPageScroll',
     'onResize',
     'onTabItemTap',
@@ -82,6 +84,7 @@ SINK_API = [
     'wx.setStorage'
 ]
 
+# cmrf 
 ROUTE_API = [
     'wx.switchTab',
     'wx.reLaunch',
@@ -90,7 +93,7 @@ ROUTE_API = [
     'wx.navigateToSync',
     'wx.navigateBack'
 ]
-
+# cmrf 
 NAVIGATE_API = [
     'wx.navigateToMiniProgram',
     'wx.navigateBackMiniProgram',
@@ -125,6 +128,7 @@ BINDING_EVENTS += [
     'bindopensetting',
     'bindlaunchapp', 
     'bindsubmit', 
+    'catchsubmit',
 
     # <scroll-view>
     'binddragstart', 
@@ -166,6 +170,7 @@ BINDING_EVENTS += [
 
     # <form>
     'bindreset',
+    'catchreset',
 
     # <input>
     'bindconfirm',
