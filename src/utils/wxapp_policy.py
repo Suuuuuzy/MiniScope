@@ -3,28 +3,8 @@ from lxml import etree
 import time
 import requests, re
 
-def traverse(obj):
-    if isinstance(obj, dict):
-        for key, value in obj.items():
-            traverse(value)  # 递归遍历属性值
-            if isinstance(value, int) and "time" in key:
-                obj[key] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(value))
-    elif isinstance(obj, list):
-        for item in obj:
-            traverse(item)  # 递归遍历列表项        
-
-
-# 选取想要的域名元素
-def Get_MiddleStr(content,startStr,endStr): #获取中间字符串的⼀个通⽤函数
-	startIndex = content.index(startStr)
-	if startIndex>=0:
-		startIndex += len(startStr)
-		endIndex = content.index(endStr)
-	return content[startIndex:endIndex].split(',')
-
-# jianjia: this should be the place to get allow lists
-def get_about_info(appid):
-        
+def get_policy_info(appid):
+    # get this from proxyman when sending request: 
     # https://mp.weixin.qq.com/wxawap/waprivacyinfo?action=show&appid=wxaf35009675aa0b2a&uin=ODgyMTQ1NjQ0&key=daf9bdc5abc4e8d0594a5af0bf0a05cebd8a3c1de30f628c6d3dc5dfe232a5bae3ba489c989eaf8a340dc1c917e944ac9c5d7c5f4de101c884311fd5b9e54431be5fb8bceea46467a0355f46af7142973c2e4afc5a18c7f3e417999b911fdd224f98719554f6afca3962b294920c2f8286a4c573894145e37db22a7ad6604c94&devicetype=UnifiedPCMac&version=f26414f0&lang=en&ascene=1&acctmode=0&pass_ticket=p0Zc4H6ALVITACtJc34tvwDjqxDx3K7UvBnyCGkw4oQ2rWM32iCHnZcWdwd5iFgB
     
     url = "https://mp.weixin.qq.com/wxawap/waprivacyinfo?"
@@ -40,9 +20,10 @@ def get_about_info(appid):
     rep = requests.get(url=url, params=params, headers=headers)
     if rep.status_code == 200:
         html = rep.content.decode('utf-8')
-        with open(appid+"_info.html", "w") as f:
+        with open("out/policy/" + appid+"_info.html", "w") as f:
             f.write(html)
 
 if __name__=='__main__':
+    # input: appid, output: out/policy/appid_info.html
     appid_id = 'wxaf35009675aa0b2a'
-    get_about_info(appid_id)
+    get_policy_info(appid_id)
