@@ -24,15 +24,15 @@ def Get_MiddleStr(content,startStr,endStr): #获取中间字符串的⼀个通�
 
 # jianjia: this should be the place to get allow lists
 def get_about_info(appid):
-    
-    # https://mp.weixin.qq.com/wxawap/waprivacyinfo?action=show&appid=wxaf35009675aa0b2a&uin=ODgyMTQ1NjQ0&key=daf9bdc5abc4e8d0c91133b91ca393cc11b7255df60a7c27b7d0ac08f679693b41c23338cd2e5341a4c3c1fb6b0e76899f988adf6d4ebbe904e84c8941483d94ae02c55cadb878edea117f10dbc8e20436e880c22690c38fa062e575cdff0ba5f657d8d4dca3b6170ca7dd14cdee9b69c63f7171ba17ea9d84a6246b399cd0ce&devicetype=UnifiedPCMac&version=f26414f0&lang=en&ascene=1&acctmode=0&pass_ticket=O8QJiRuUKx46Rkuk5LZBsakaHsChXQu2tveExbcx1zlBEzZAyaOiwO3g8bo%2BWpfu
+        
+    # https://mp.weixin.qq.com/wxawap/waprivacyinfo?action=show&appid=wxaf35009675aa0b2a&uin=ODgyMTQ1NjQ0&key=daf9bdc5abc4e8d0594a5af0bf0a05cebd8a3c1de30f628c6d3dc5dfe232a5bae3ba489c989eaf8a340dc1c917e944ac9c5d7c5f4de101c884311fd5b9e54431be5fb8bceea46467a0355f46af7142973c2e4afc5a18c7f3e417999b911fdd224f98719554f6afca3962b294920c2f8286a4c573894145e37db22a7ad6604c94&devicetype=UnifiedPCMac&version=f26414f0&lang=en&ascene=1&acctmode=0&pass_ticket=p0Zc4H6ALVITACtJc34tvwDjqxDx3K7UvBnyCGkw4oQ2rWM32iCHnZcWdwd5iFgB
     
     url = "https://mp.weixin.qq.com/wxawap/waprivacyinfo?"
-    params =  f"action=show&appid={appid}&uin=ODgyMTQ1NjQ0&key=daf9bdc5abc4e8d0c91133b91ca393cc11b7255df60a7c27b7d0ac08f679693b41c23338cd2e5341a4c3c1fb6b0e76899f988adf6d4ebbe904e84c8941483d94ae02c55cadb878edea117f10dbc8e20436e880c22690c38fa062e575cdff0ba5f657d8d4dca3b6170ca7dd14cdee9b69c63f7171ba17ea9d84a6246b399cd0ce&devicetype=UnifiedPCMac&version=f26414f0&lang=en&ascene=1&acctmode=0&pass_ticket=O8QJiRuUKx46Rkuk5LZBsakaHsChXQu2tveExbcx1zlBEzZAyaOiwO3g8bo%2BWpfu"
+    params =  f"action=show&appid={appid}&&uin=ODgyMTQ1NjQ0&key=daf9bdc5abc4e8d0594a5af0bf0a05cebd8a3c1de30f628c6d3dc5dfe232a5bae3ba489c989eaf8a340dc1c917e944ac9c5d7c5f4de101c884311fd5b9e54431be5fb8bceea46467a0355f46af7142973c2e4afc5a18c7f3e417999b911fdd224f98719554f6afca3962b294920c2f8286a4c573894145e37db22a7ad6604c94&devicetype=UnifiedPCMac&version=f26414f0&lang=en&ascene=1&acctmode=0&pass_ticket=p0Zc4H6ALVITACtJc34tvwDjqxDx3K7UvBnyCGkw4oQ2rWM32iCHnZcWdwd5iFgB"
     headers={ "User-Agent": "Mozilla/5.0 (Linux; Android 6.0.1; MuMu Build/V417IR; wv)" } #微信两个校验值
-    # headers = {
-    # "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
-    # }
+    headers = {
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36 NetType/WIFI MicroMessenger/7.0.20.1781(0x6700143B) MacWechat/3.8.7(0x13080712) UnifiedPCMacWechat(0xf26414f0) XWEB/16962 Flue"
+    }
     # cookies = {
     #     "session_id": "1234567890"
     # }
@@ -40,16 +40,9 @@ def get_about_info(appid):
     rep = requests.get(url=url, params=params, headers=headers)
     if rep.status_code == 200:
         html = rep.content.decode('utf-8')
-        # content = html
-        # matches = re.findall(pattern, content)
-        # if len(matches)>0:
-        #     source_name = matches[0]
-        #     source_name = source_name.strip()
-        #     source_name = source_name.replace(" ", "")
-        #     domains = [i.replace("\"", "").replace(",", "") for i in source_name.split("\n") if "\"" in i]
-        with open(appid+"_info.json", "w") as f:
+        with open(appid+"_info.html", "w") as f:
             f.write(html)
 
 if __name__=='__main__':
-    appid_id = 'wx66a90900db27b9ae'
+    appid_id = 'wxaf35009675aa0b2a'
     get_about_info(appid_id)
