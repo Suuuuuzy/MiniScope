@@ -1,9 +1,9 @@
 localChrome = "/Users/jianjia/Documents/projects/mini-app/MiniScope/drivers/116"
-appName = "遂川旅游景点"
-appID = "wx4938079035028687"
+appName = "美团丨外卖团购特价美食酒店电影,"
+appID = "wxde8ac0a21135c07d"
 
 [capabilities]
-deviceName = "Pixel_6a"
+deviceName = "*"
 platformName = "Android"
 appPackage = "com.tencent.mm"
 appActivity = "com.tencent.mm.ui.LauncherUI"
