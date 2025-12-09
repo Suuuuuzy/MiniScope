@@ -24,3 +24,4 @@ toml==0.10.2
 torch==2.0.1
 tqdm==4.64.1
 zstandard
+jieba

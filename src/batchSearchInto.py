@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 # this is used to search into the miniapps on Android with keywords
 from dynamic.pgc import CrawlWXMicroWebView
 from pathlib import Path

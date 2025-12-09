@@ -1,3 +1,29 @@
+# Update by Minnie
+
+Minnie uses MiniScope's UI automator to crawl miniapp metadata. Usage:
+
+```bash
+# go to Miniscope src
+cd ../../../libs/MiniScope
+pkill -f appium
+./run_appium.sh &
+
+# activate python in venv
+source venv/bin/activate
+# start miniapp keyword search in wechat
+python3 src/batchSearchInto.py
+```
+
+As in `Minnie/utils/collect/meta_data_crawler/meta_search.sh`. Before running `meta_search.sh`, update your `USERNAME` in `run_appium.sh`
+
+```bash
+source venv/bin/activate
+python3 -m pip install -r requirements.txt
+```
+
+----------------
+
+# Original README
 # MiniScope
 
 MiniScope is a framework for detecting privacy violations using hybrid analysis. It introduces a novel topological structure named MDG (MiniApp Dependency Graph) to guide dynamic testing. At the same time, MiniScope monitors privacy practices by hooking sensitive APIs, and cross-validates with privacy policies to detect violations.
