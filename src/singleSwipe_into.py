@@ -1,4 +1,4 @@
-#!/Users/jianjia/Documents/projects/mini-app/MiniScope/myenv/bin/python
+# -*- coding: utf-8 -*-
 
 # this is used to search into the miniapps on Android with keywords
 from dynamic.pgc import CrawlWXMicroWebView

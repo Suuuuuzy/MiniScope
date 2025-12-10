@@ -1,6 +1,6 @@
 # Update by Minnie
 
-Minnie uses MiniScope's UI automator to crawl miniapp metadata. Usage:
+Minnie updates MiniScope's UI automator to crawl miniapp metadata. Usage:
 
 ```bash
 # go to Miniscope src
@@ -14,8 +14,11 @@ source venv/bin/activate
 python3 src/batchSearchInto.py
 ```
 
-As in `Minnie/utils/collect/meta_data_crawler/meta_search.sh`. Before running `meta_search.sh`, update your `USERNAME` in `run_appium.sh`
+As in `Minnie/utils/collect/meta_data_crawler/meta_search.sh`. 
 
+Before running `meta_search.sh`, update your `USERNAME` in `run_appium.sh`
+
+Then,
 ```bash
 source venv/bin/activate
 python3 -m pip install -r requirements.txt
